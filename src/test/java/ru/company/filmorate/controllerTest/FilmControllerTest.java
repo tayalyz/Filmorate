@@ -103,7 +103,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    void shouldFailWhenReleaseDateIsNotValid() throws Exception { // todo не работает аннотация
+    void shouldFailWhenReleaseDateIsNotValid() throws Exception {
         Film film = new Film();
         film.setName("name");
         film.setDescription("desc");
@@ -139,7 +139,7 @@ public class FilmControllerTest {
         updatedFilm.setId(filmId);
         updatedFilm.setName("updName");
         updatedFilm.setDescription("desc");
-        updatedFilm.setReleaseDate(LocalDate.of(2024, 10, 17));
+        updatedFilm.setReleaseDate(LocalDate.of(1895, 12, 28));
         updatedFilm.setDuration(200);
 
         mockMvc.perform(put("/films/" + filmId)
@@ -148,7 +148,7 @@ public class FilmControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("updName"))
                 .andExpect(jsonPath("$.description").value("desc"))
-                .andExpect(jsonPath("$.releaseDate").value("2024-10-17"))
+                .andExpect(jsonPath("$.releaseDate").value("1895-12-28"))
                 .andExpect(jsonPath("$.duration").value("200"));
     }
 
@@ -228,7 +228,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    void shouldFailWhenUpdatedFilmReleaseDateIsNotValid() throws Exception { // todo
+    void shouldFailWhenUpdatedFilmReleaseDateIsNotValid() throws Exception {
         Film film = new Film();
         film.setName("name");
         film.setDescription("desc");
@@ -248,7 +248,7 @@ public class FilmControllerTest {
         updatedFilm.setId(filmId);
         updatedFilm.setName("updName");
         updatedFilm.setDescription("desc");
-        updatedFilm.setReleaseDate(LocalDate.of(1000, 10, 17));
+        updatedFilm.setReleaseDate(LocalDate.of(1895, 12, 27));
         updatedFilm.setDuration(200);
 
         mockMvc.perform(put("/films/" + updatedFilm.getId())
@@ -256,7 +256,7 @@ public class FilmControllerTest {
                         .content(objectMapper.writeValueAsString(updatedFilm)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[0].field").value("releaseDate"))
-                .andExpect(jsonPath("$.errors[0].defaultMessage").value("Неверный формат электронной почты"));
+                .andExpect(jsonPath("$.errors[0].defaultMessage").value("Дата релиза не может быть раньше 28 декабря 1895 года"));
 
     }
 
