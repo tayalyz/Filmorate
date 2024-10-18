@@ -2,6 +2,7 @@ package ru.company.filmorate.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import ru.company.filmorate.exception.DuplicateUserException;
 import ru.company.filmorate.exception.NotFoundException;
 import ru.company.filmorate.model.User;
 import ru.company.filmorate.util.Identifier;
@@ -25,6 +26,12 @@ public class UserController {
 
     @PostMapping()
     public User addUser(@RequestBody @Valid User user) {
+        for (User existingUser : users.values()) {
+            if (existingUser.getEmail().equals(user.getEmail())) {
+                throw new DuplicateUserException("пользователь с такой электронной почтой уже существует");
+            }
+        }
+
         user.setId(Identifier.INSTANCE.generate(User.class));
         users.put(user.getId(), user);
         log.info("добавлен пользователь с id {}", user.getId());

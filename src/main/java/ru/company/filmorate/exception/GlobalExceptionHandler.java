@@ -41,4 +41,14 @@ public class GlobalExceptionHandler {
         errors.put("status", ex.getStatusCode());
         return errors;
     }
+
+    @ExceptionHandler(DuplicateUserException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, Object> handleDuplicateUserExceptions(DuplicateUserException ex) {
+        Map<String, Object> errors = new HashMap<>();
+
+        errors.put("message", ex.getMessage());
+        errors.put("status", ex.getStatusCode());
+        return errors;
+    }
 }
