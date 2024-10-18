@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
             errorDetails.add(fieldError);
         });
 
-        errors.put("status", "BAD_REQUEST");
+        errors.put("status", ex.getStatusCode());
         errors.put("errors", errorDetails);
         return errors;
     }
@@ -36,17 +36,9 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, Object> handleNotFoundExceptions(NotFoundException ex) {
         Map<String, Object> errors = new HashMap<>();
-        List<Map<String, String>> errorDetails = new ArrayList<>();
 
-//        ex.getBindingResult().getFieldErrors().forEach(error -> {
-//            Map<String, String> fieldError = new HashMap<>();
-//            fieldError.put("field", error.getField());
-//            fieldError.put("defaultMessage", error.getDefaultMessage());
-//            errorDetails.add(fieldError);
-//        });
-
-        errors.put("status", "NOT_FOUND");
-        errors.put("errors", errorDetails);
+        errors.put("message", ex.getMessage());
+        errors.put("status", ex.getStatusCode());
         return errors;
     }
 }

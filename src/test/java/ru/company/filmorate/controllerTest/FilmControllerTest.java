@@ -34,17 +34,13 @@ public class FilmControllerTest {
 
     @Test
     void shouldAddFilm() throws Exception {
-        Film film = new Film();
-        film.setName("film");
-        film.setDescription("desc");
-        film.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film.setDuration(200);
+        Film film = createFilm("name", "desc", LocalDate.of(2024, 10, 17), 200);
 
         mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(film)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("film"))
+                .andExpect(jsonPath("$.name").value("name"))
                 .andExpect(jsonPath("$.description").value("desc"))
                 .andExpect(jsonPath("$.releaseDate").value("2024-10-17"))
                 .andExpect(jsonPath("$.duration").value("200"));
@@ -52,11 +48,7 @@ public class FilmControllerTest {
 
     @Test
     void shouldFailWhenNameIsBlank() throws Exception {
-        Film film = new Film();
-        film.setName("");
-        film.setDescription("desc");
-        film.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film.setDuration(200);
+        Film film = createFilm("", "desc", LocalDate.of(2024, 10, 17), 200);
 
         mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -68,11 +60,7 @@ public class FilmControllerTest {
 
     @Test
     void shouldFailWhenDurationIsNegative() throws Exception {
-        Film film = new Film();
-        film.setName("name");
-        film.setDescription("desc");
-        film.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film.setDuration(-200);
+        Film film = createFilm("name", "desc", LocalDate.of(2024, 10, 17), -200);
 
         mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -84,15 +72,12 @@ public class FilmControllerTest {
 
     @Test
     void shouldFailWhenDescriptionIsTooLong() throws Exception {
-        Film film = new Film();
-        film.setName("name");
-        film.setDescription("descdescdescdescvvdescdescdescdescdescdescdescdescdescdescdesc" +
+        Film film = createFilm("name", "descdescdescdescvvdescdescdescdescdescdescdescdescdescdescdesc" +
                 "descdescdescdescdescdescdescdescdescdescdescdescdescvdescdescdescdesc" +
                 "descdescdescdescdescdescdescdescdescdescdescdescvvdescdescdescdescdesc" +
                 "descdescdescdescdescdescdescdescdescdescdescdescdescdescdescdescdescdesc" +
-                "descvdescdescdescdescdescdescdescdescdescdescdescdesc");
-        film.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film.setDuration(200);
+                "descvdescdescdescdescdescdescdescdescdescdescdescdesc",
+                LocalDate.of(2024, 10, 17), 200);
 
         mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -103,12 +88,8 @@ public class FilmControllerTest {
     }
 
     @Test
-    void shouldFailWhenReleaseDateIsNotValid() throws Exception { // todo не работает аннотация
-        Film film = new Film();
-        film.setName("name");
-        film.setDescription("desc");
-        film.setReleaseDate(LocalDate.of(1800, 1, 1));
-        film.setDuration(200);
+    void shouldFailWhenReleaseDateIsNotValid() throws Exception {
+        Film film = createFilm("name", "desc", LocalDate.of(1000, 10, 17), 200);
 
         mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -120,11 +101,7 @@ public class FilmControllerTest {
 
     @Test
     void shouldUpdateFilm() throws Exception {
-        Film film = new Film();
-        film.setName("name");
-        film.setDescription("desc");
-        film.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film.setDuration(200);
+        Film film = createFilm("name", "desc", LocalDate.of(2024, 10, 17), 200);
 
         String response = mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -135,12 +112,8 @@ public class FilmControllerTest {
         Film createdFilm = objectMapper.readValue(response, Film.class);
         Integer filmId = createdFilm.getId();
 
-        Film updatedFilm = new Film();
+        Film updatedFilm = createFilm("updName", "desc", LocalDate.of(1895, 12, 28), 200);
         updatedFilm.setId(filmId);
-        updatedFilm.setName("updName");
-        updatedFilm.setDescription("desc");
-        updatedFilm.setReleaseDate(LocalDate.of(2024, 10, 17));
-        updatedFilm.setDuration(200);
 
         mockMvc.perform(put("/films/" + filmId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -148,17 +121,13 @@ public class FilmControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("updName"))
                 .andExpect(jsonPath("$.description").value("desc"))
-                .andExpect(jsonPath("$.releaseDate").value("2024-10-17"))
+                .andExpect(jsonPath("$.releaseDate").value("1895-12-28"))
                 .andExpect(jsonPath("$.duration").value("200"));
     }
 
     @Test
     void shouldFailWhenUpdateFilmIsNotFound() throws Exception {
-        Film film = new Film();
-        film.setName("name");
-        film.setDescription("desc");
-        film.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film.setDuration(200);
+        Film film = createFilm("name", "desc", LocalDate.of(2024, 10, 17), 200);
 
         mockMvc.perform(put("/films/100000")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -168,25 +137,16 @@ public class FilmControllerTest {
 
     @Test
     void shouldFailWhenUpdatedFilmIdIsWrong() throws Exception {
-        Film film = new Film();
-        film.setId(1);
-        film.setName("name");
-        film.setDescription("desc");
-        film.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film.setDuration(200);
+        Film film = createFilm("name", "desc", LocalDate.of(2024, 10, 17), 200);
 
-        String response = mockMvc.perform(post("/films")
+        mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(film)))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        Film updatedFilm = new Film();
+        Film updatedFilm = createFilm("name", "desc", LocalDate.of(2023, 10, 17), 200);
         updatedFilm.setId(1000);
-        updatedFilm.setName("updName");
-        updatedFilm.setDescription("desc");
-        updatedFilm.setReleaseDate(LocalDate.of(2024, 10, 17));
-        updatedFilm.setDuration(200);
 
         mockMvc.perform(put("/films/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -196,11 +156,7 @@ public class FilmControllerTest {
 
     @Test
     void shouldFailWhenUpdatedFilmDurationIsNegative() throws Exception {
-        Film film = new Film();
-        film.setName("name");
-        film.setDescription("desc");
-        film.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film.setDuration(200);
+        Film film = createFilm("name", "desc", LocalDate.of(2024, 10, 17), 200);
 
         String response = mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -211,12 +167,8 @@ public class FilmControllerTest {
         Film createdFilm = objectMapper.readValue(response, Film.class);
         Integer filmId = createdFilm.getId();
 
-        Film updatedFilm = new Film();
+        Film updatedFilm = createFilm("name", "desc", LocalDate.of(2024, 10, 17), -200);
         updatedFilm.setId(filmId);
-        updatedFilm.setName("updName");
-        updatedFilm.setDescription("desc");
-        updatedFilm.setReleaseDate(LocalDate.of(2024, 10, 17));
-        updatedFilm.setDuration(-200000);
 
         mockMvc.perform(put("/films/" + updatedFilm.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -228,12 +180,8 @@ public class FilmControllerTest {
     }
 
     @Test
-    void shouldFailWhenUpdatedFilmReleaseDateIsNotValid() throws Exception { // todo
-        Film film = new Film();
-        film.setName("name");
-        film.setDescription("desc");
-        film.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film.setDuration(200);
+    void shouldFailWhenUpdatedFilmReleaseDateIsNotValid() throws Exception {
+        Film film = createFilm("name", "desc", LocalDate.of(2024, 10, 17), 200);
 
         String response = mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -244,51 +192,35 @@ public class FilmControllerTest {
         Film createdFilm = objectMapper.readValue(response, Film.class);
         Integer filmId = createdFilm.getId();
 
-        Film updatedFilm = new Film();
+        Film updatedFilm = createFilm("name", "desc", LocalDate.of(1895, 12, 27), 200);
         updatedFilm.setId(filmId);
-        updatedFilm.setName("updName");
-        updatedFilm.setDescription("desc");
-        updatedFilm.setReleaseDate(LocalDate.of(1000, 10, 17));
-        updatedFilm.setDuration(200);
 
         mockMvc.perform(put("/films/" + updatedFilm.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedFilm)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[0].field").value("releaseDate"))
-                .andExpect(jsonPath("$.errors[0].defaultMessage").value("Неверный формат электронной почты"));
+                .andExpect(jsonPath("$.errors[0].defaultMessage").value("Дата релиза не может быть раньше 28 декабря 1895 года"));
 
     }
 
     @Test
     void shouldGetAllFilms() throws Exception {
-        Film film1 = new Film();
-        film1.setName("name");
-        film1.setDescription("desc");
-        film1.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film1.setDuration(200);
+        Film film1 = createFilm("name", "desc", LocalDate.of(2024, 10, 17), 200);
 
         mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(film1)))
                 .andExpect(status().isOk());
 
-        Film film2 = new Film();
-        film2.setName("name");
-        film2.setDescription("desc");
-        film2.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film2.setDuration(200);
+        Film film2 = createFilm("name", "desc", LocalDate.of(2024, 10, 17), 200);
 
         mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(film2)))
                 .andExpect(status().isOk());
 
-        Film film3 = new Film();
-        film3.setName("name");
-        film3.setDescription("desc");
-        film3.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film3.setDuration(200);
+        Film film3 = createFilm("name", "desc", LocalDate.of(2024, 10, 17), 200);
 
         mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -314,12 +246,8 @@ public class FilmControllerTest {
     }
 
     @Test
-    void shouldDeleteAllUsers() throws Exception {
-        Film film = new Film();
-        film.setName("name");
-        film.setDescription("desc");
-        film.setReleaseDate(LocalDate.of(2024, 10, 17));
-        film.setDuration(200);
+    void shouldDeleteAllFilms() throws Exception {
+        Film film = createFilm("name", "desc", LocalDate.of(2024, 10, 17), 200);
 
         mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -334,6 +262,15 @@ public class FilmControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(0));
+    }
+
+    private Film createFilm(String name, String description, LocalDate releaseDate, int duration) {
+        Film film = new Film();
+        film.setName(name);
+        film.setDescription(description);
+        film.setReleaseDate(releaseDate);
+        film.setDuration(duration);
+        return film;
     }
 }
 

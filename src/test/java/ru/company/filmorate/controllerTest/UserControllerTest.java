@@ -32,10 +32,7 @@ class UserControllerTest {
 
     @Test
     void shouldAddUser() throws Exception {
-        User user = new User();
-        user.setLogin("validLogin");
-        user.setEmail("valid.email@example.com");
-        user.setBirthday(LocalDate.of(1990, 1, 1));
+        User user = createUser("validLogin", "valid.email@example.com", 1990, 2, 12);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -43,15 +40,12 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.login").value("validLogin"))
                 .andExpect(jsonPath("$.email").value("valid.email@example.com"))
-                .andExpect(jsonPath("$.birthday").value("1990-01-01"));
+                .andExpect(jsonPath("$.birthday").value("1990-02-12"));
     }
 
     @Test
     void shouldFailWhenLoginIsBlank() throws Exception {
-        User user = new User();
-        user.setLogin("");
-        user.setEmail("valid.email@example.com");
-        user.setBirthday(LocalDate.of(1990, 1, 1));
+        User user = createUser("", "valid.email@example.com", 1990, 10, 10);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -63,10 +57,7 @@ class UserControllerTest {
 
     @Test
     void shouldFailWhenEmailIsBlank() throws Exception {
-        User user = new User();
-        user.setLogin("login");
-        user.setEmail("");
-        user.setBirthday(LocalDate.of(1990, 1, 1));
+        User user = createUser("login", "", 1990, 12, 12);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -78,10 +69,7 @@ class UserControllerTest {
 
     @Test
     void shouldFailWhenEmailIsNotValid() throws Exception {
-        User user = new User();
-        user.setLogin("login");
-        user.setEmail("not.valid.email");
-        user.setBirthday(LocalDate.of(1990, 1, 1));
+        User user = createUser("login", "not.valid.email", 1990, 12, 12);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -93,10 +81,7 @@ class UserControllerTest {
 
     @Test
     void shouldFailWhenBirthdayIsInFuture() throws Exception {
-        User user = new User();
-        user.setLogin("login");
-        user.setEmail("valid.email@example.com");
-        user.setBirthday(LocalDate.of(2990, 1, 1));
+        User user = createUser("login", "valid.email@example.com", 2990, 12, 12);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -108,10 +93,7 @@ class UserControllerTest {
 
     @Test
     void shouldUpdateUser() throws Exception {
-        User user = new User();
-        user.setLogin("login");
-        user.setEmail("valid.email@example.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = createUser("login", "valid.email@example.com", 2000, 12, 12);
 
         String response = mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -122,28 +104,21 @@ class UserControllerTest {
         User createdUser = objectMapper.readValue(response, User.class);
         Integer userId = createdUser.getId();
 
-        User updatedUser = new User();
+        User updatedUser = createUser("login", "valid.email@example.com", 1985, 12, 27);
         updatedUser.setId(userId);
-        updatedUser.setLogin("updatedLogin");
-        updatedUser.setEmail("updated.email@example.com");
-        updatedUser.setBirthday(LocalDate.of(1985, 5, 15));
 
         mockMvc.perform(put("/users/" + userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.login").value("updatedLogin"))
-                .andExpect(jsonPath("$.email").value("updated.email@example.com"))
-                .andExpect(jsonPath("$.birthday").value("1985-05-15"));
+                .andExpect(jsonPath("$.login").value("login"))
+                .andExpect(jsonPath("$.email").value("valid.email@example.com"))
+                .andExpect(jsonPath("$.birthday").value("1985-12-27"));
     }
 
     @Test
-    void shouldFailWhenUpdatedUserNotFound() throws Exception {
-        User user = new User();
-        user.setId(100000);
-        user.setLogin("validLogin");
-        user.setEmail("valid.email@example.com");
-        user.setBirthday(LocalDate.of(1990, 1, 1));
+    void shouldFailWhenUserForUpdateIsNotFound() throws Exception {
+        User user = createUser("login", "valid.email@example.com", 2000, 12, 12);
 
         mockMvc.perform(put("/users/100000")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -153,22 +128,15 @@ class UserControllerTest {
 
     @Test
     void shouldFailWhenUpdatedUserIdIsWrong() throws Exception {
-        User user = new User();
-        user.setId(1);
-        user.setLogin("login");
-        user.setEmail("valid.email@example.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = createUser("login", "valid.email@example.com", 2000, 12, 12);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isOk());
 
-        User updatedUser = new User();
+        User updatedUser = createUser("login", "valid.email@example.com", 1985, 5, 15);
         updatedUser.setId(1000);
-        updatedUser.setLogin("updatedLogin");
-        updatedUser.setEmail("updated.email@example.com");
-        updatedUser.setBirthday(LocalDate.of(1985, 5, 15));
 
         mockMvc.perform(put("/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -178,22 +146,16 @@ class UserControllerTest {
 
     @Test
     void shouldFailWhenUpdatedUserLoginIsBlank() throws Exception {
-        User user = new User();
+        User user = createUser("login", "valid.email@example.com", 2000, 12, 12);
         user.setId(1);
-        user.setLogin("login");
-        user.setEmail("valid.email@example.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isOk());
 
-        User updatedUser = new User();
+        User updatedUser = createUser("", "valid.email@example.com", 2000, 12, 12);
         updatedUser.setId(1);
-        updatedUser.setLogin("");
-        updatedUser.setEmail("updated.email@example.com");
-        updatedUser.setBirthday(LocalDate.of(1985, 5, 15));
 
         mockMvc.perform(put("/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -206,22 +168,16 @@ class UserControllerTest {
 
     @Test
     void shouldFailWhenUpdatedUserEmailIsBlank() throws Exception {
-        User user = new User();
+        User user = createUser("login", "valid.email@example.com", 2000, 12, 12);
         user.setId(1);
-        user.setLogin("login");
-        user.setEmail("valid.email@example.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isOk());
 
-        User updatedUser = new User();
+        User updatedUser = createUser("login", "", 2000, 12, 12);
         updatedUser.setId(1);
-        updatedUser.setLogin("login");
-        updatedUser.setEmail("");
-        updatedUser.setBirthday(LocalDate.of(1985, 5, 15));
 
         mockMvc.perform(put("/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -229,27 +185,20 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[0].field").value("email"))
                 .andExpect(jsonPath("$.errors[0].defaultMessage").value("Адрес электронной почты не может быть пустым"));
-
     }
 
     @Test
     void shouldFailWhenUpdatedUserEmailIsNotValid() throws Exception {
-        User user = new User();
+        User user = createUser("login", "valid.email@example.com", 2000, 12, 12);
         user.setId(1);
-        user.setLogin("login");
-        user.setEmail("valid.email@example.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isOk());
 
-        User updatedUser = new User();
+        User updatedUser = createUser("login", "not.valid.email.example.com", 2000, 12, 12);
         updatedUser.setId(1);
-        updatedUser.setLogin("login");
-        updatedUser.setEmail("bad.updated.email");
-        updatedUser.setBirthday(LocalDate.of(1985, 5, 15));
 
         mockMvc.perform(put("/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -262,22 +211,16 @@ class UserControllerTest {
 
     @Test
     void shouldFailWhenUpdatedUserBirthdayIsInFuture() throws Exception {
-        User user = new User();
+        User user = createUser("login", "valid.email@example.com", 2000, 12, 12);
         user.setId(1);
-        user.setLogin("login");
-        user.setEmail("valid.email@example.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isOk());
 
-        User updatedUser = new User();
+        User updatedUser = createUser("login", "valid.email@example.com", 3000, 12, 12);
         updatedUser.setId(1);
-        updatedUser.setLogin("login");
-        updatedUser.setEmail("valid.email@example.com");
-        updatedUser.setBirthday(LocalDate.of(3000, 5, 15));
 
         mockMvc.perform(put("/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -289,30 +232,21 @@ class UserControllerTest {
 
     @Test
     void shouldGetAllUsers() throws Exception {
-        User user1 = new User();
-        user1.setLogin("login1");
-        user1.setEmail("valid1.email@example.com");
-        user1.setBirthday(LocalDate.of(2000, 1, 1));
+        User user1 = createUser("login1", "valid1.email@example.com", 2000, 1, 1);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user1)))
                 .andExpect(status().isOk());
 
-        User user2 = new User();
-        user2.setLogin("login2");
-        user2.setEmail("valid2.email@example.com");
-        user2.setBirthday(LocalDate.of(2000, 1, 1));
+        User user2 = createUser("login2", "valid2.email@example.com", 2000, 1, 1);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user2)))
                 .andExpect(status().isOk());
 
-        User user3 = new User();
-        user3.setLogin("login3");
-        user3.setEmail("valid3.email@example.com");
-        user3.setBirthday(LocalDate.of(2000, 1, 1));
+        User user3 = createUser("login3", "valid3.email@example.com", 2000, 1, 1);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -339,10 +273,7 @@ class UserControllerTest {
 
     @Test
     void shouldDeleteAllUsers() throws Exception {
-        User user = new User();
-        user.setLogin("login1");
-        user.setEmail("valid1.email@example.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = createUser("login1", "valid1.email@example.com", 2000, 1, 1);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -357,5 +288,13 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(0));
+    }
+
+    private User createUser(String login1, String mail, int year, int month, int day) {
+        User user = new User();
+        user.setLogin(login1);
+        user.setEmail(mail);
+        user.setBirthday(LocalDate.of(year, month, day));
+        return user;
     }
 }
