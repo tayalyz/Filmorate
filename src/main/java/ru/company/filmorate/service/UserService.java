@@ -20,7 +20,7 @@ public class UserService {
 
     public User addUser(User user) {
         user.setId(Identifier.INSTANCE.generate(User.class));
-        if (userStorage.isUserAlreadyExist(user)) {
+        if (userStorage.userExists(user)) {
             throw new DuplicateUserException("пользователь с такой электронной почтой уже существует");
         }
         userStorage.addUser(user);
@@ -29,13 +29,12 @@ public class UserService {
     }
 
     public User updateUser(User user, Integer id) {
-        if (userStorage.compareIdsForUpdate(user, id)) {
+        if (userStorage.compareIdsForUpdate(user.getId(), id)) {
             userStorage.updateUser(user, id);
-            log.info("обновлен пользователь с id {}", user.getId());
+            log.info("обновлен пользователь с id {}", id);
             return user;
-        } else {
-            throw new NotFoundException("пользователь не найден");
         }
+        throw new NotFoundException("пользователь не найден");
     }
 
     public List<User> getAllUsers() {

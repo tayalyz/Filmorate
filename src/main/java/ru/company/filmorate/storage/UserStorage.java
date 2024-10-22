@@ -8,7 +8,7 @@ public interface UserStorage {
 
     User addUser(User user);
 
-    boolean isUserAlreadyExist(User user);
+    boolean userExists(User user);
 
     List<User> getAllUsers();
 
@@ -16,5 +16,5 @@ public interface UserStorage {
 
     User updateUser(User user, Integer id);
 
-    boolean compareIdsForUpdate(User userForUpdate, Integer id);
+    boolean compareIdsForUpdate(Integer existingUserId, Integer pathId);
 }

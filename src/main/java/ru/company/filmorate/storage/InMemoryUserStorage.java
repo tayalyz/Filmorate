@@ -20,7 +20,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public boolean isUserAlreadyExist(User user) {
+    public boolean userExists(User user) {
         for (User existingUser : users.values()) {
             if (existingUser.getEmail().equals(user.getEmail())) {
                 return true;
@@ -45,9 +45,9 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public boolean compareIdsForUpdate(User userForUpdate, Integer id) {
-        if (users.containsKey(id) && Objects.equals(userForUpdate.getId(), id)) {
-            users.remove(id);
+    public boolean compareIdsForUpdate(Integer existingUserId, Integer pathId) {
+        if (users.containsKey(pathId) && Objects.equals(existingUserId, pathId)) {
+            users.remove(pathId);
             return true;
         }
         return false;
