@@ -7,6 +7,7 @@ import ru.company.filmorate.model.Film;
 import ru.company.filmorate.service.FilmService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,12 +17,12 @@ public class FilmController {
     private final FilmService filmService;
 
     @PostMapping()
-    public Film addFilm(@RequestBody @Valid Film film) {
+    public Optional<Film> addFilm(@RequestBody @Valid Film film) {
         return filmService.addFilm(film);
     }
 
     @PutMapping("/{id}")
-    public Film updateFilms(@RequestBody @Valid Film updatedFilm, @PathVariable Integer id) {
+    public Optional<Film> updateFilms(@RequestBody @Valid Film updatedFilm, @PathVariable Long id) {
         return filmService.updateFilm(updatedFilm, id);
     }
 
@@ -33,5 +34,20 @@ public class FilmController {
     @DeleteMapping
     public void deleteAllFilms() {
         filmService.deleteAllFilms();
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void likeFilm(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.likeFilm(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.deleteLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilms(@RequestParam(required = false, value = "count", defaultValue = "10") Integer count) {
+        return filmService.getPopularFilms(count);
     }
 }

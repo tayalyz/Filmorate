@@ -7,6 +7,7 @@ import ru.company.filmorate.model.User;
 import ru.company.filmorate.service.UserService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -16,12 +17,12 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping()
-    public User addUser(@RequestBody @Valid User user) {
+    public Optional<User> addUser(@RequestBody @Valid User user) {
         return userService.addUser(user);
     }
 
     @PutMapping("/{id}")
-    public User updateUser(@RequestBody @Valid User updatedUser, @PathVariable Integer id) {
+    public Optional<User> updateUser(@RequestBody @Valid User updatedUser, @PathVariable Long id) {
         return userService.updateUser(updatedUser, id);
     }
 
@@ -33,5 +34,25 @@ public class UserController {
     @DeleteMapping
     public void deleteAllUsers() {
         userService.deleteAllUsers();
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        userService.addFriend(id, friendId);
+    }
+
+    @GetMapping("{id}/friends")
+    public List<Long> getFriends(@PathVariable Long id) {
+        return userService.getFriends(id);
+    }
+
+    @DeleteMapping("{id}/friends/{friendId}")
+    public void deleteFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        userService.deleteFriend(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<Long> getMutualFriends(@PathVariable Long id, @PathVariable Long otherId) {
+        return userService.getMutualFriends(id, otherId);
     }
 }

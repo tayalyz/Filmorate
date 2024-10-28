@@ -1,14 +1,12 @@
 package ru.company.filmorate;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@Slf4j
 @SpringBootApplication
 public class FilmorateApplication {
-
-    public static final Logger log = LoggerFactory.getLogger(FilmorateApplication.class);
 
     public static void main(String[] args) {
         SpringApplication.run(FilmorateApplication.class, args);

@@ -3,18 +3,25 @@ package ru.company.filmorate.storage;
 import ru.company.filmorate.model.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserStorage {
 
-    User addUser(User user);
-
-    boolean userExists(User user);
+    Optional<User> addUser(User user);
 
     List<User> getAllUsers();
 
     void deleteAllUsers();
 
-    User updateUser(User user, Integer id);
+    Optional<User> updateUser(User user, Long id);
 
-    boolean compareIdsForUpdate(Integer existingUserId, Integer pathId);
+    void addFriend(Long userId, Long friendId);
+
+    List<Long> getFriends(Long id);
+
+    void deleteFriend(Long id, Long friendId);
+
+    List<Long> getMutualFriends(Long id, Long otherId);
+
+    boolean userExistsById(Long id);
 }

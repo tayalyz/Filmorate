@@ -4,16 +4,18 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
-@Data
-@Builder
+@Setter
+@Getter
 public class User {
 
-    private Integer id;
+    private Long id;
 
     @NotBlank(message = "Адрес электронной почты не может быть пустым")
     @Email(message = "Неверный формат электронной почты")
@@ -28,4 +30,6 @@ public class User {
 
     @Past(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
+
+    private Set<Long> friends = new HashSet<>();
 }

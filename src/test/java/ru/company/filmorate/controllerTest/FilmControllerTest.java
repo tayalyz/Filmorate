@@ -110,7 +110,7 @@ public class FilmControllerTest {
                 .andReturn().getResponse().getContentAsString();
 
         Film createdFilm = objectMapper.readValue(response, Film.class);
-        Integer filmId = createdFilm.getId();
+        Long filmId = createdFilm.getId();
 
         Film updatedFilm = createFilm("updName", "desc", LocalDate.of(1895, 12, 28), 200);
         updatedFilm.setId(filmId);
@@ -126,7 +126,7 @@ public class FilmControllerTest {
     @Test
     void shouldFailWhenUpdateFilmIsNotFound() throws Exception {
         Film film = createFilm("name", "desc", LocalDate.of(2024, 10, 17), 200);
-        film.setId(1);
+        film.setId(1L);
 
         mockMvcPerformPut(film, film.getId())
                 .andExpect(status().isNotFound())
@@ -142,7 +142,7 @@ public class FilmControllerTest {
                 .andReturn().getResponse().getContentAsString();
 
         Film updatedFilm = createFilm("name", "desc", LocalDate.of(2023, 10, 17), 200);
-        updatedFilm.setId(1000);
+        updatedFilm.setId(1000L);
 
         mockMvcPerformPut(updatedFilm, 1)
                 .andExpect(status().isNotFound())
@@ -158,7 +158,7 @@ public class FilmControllerTest {
                 .andReturn().getResponse().getContentAsString();
 
         Film createdFilm = objectMapper.readValue(response, Film.class);
-        Integer filmId = createdFilm.getId();
+        Long filmId = createdFilm.getId();
 
         Film updatedFilm = createFilm("name", "desc", LocalDate.of(2024, 10, 17), -200);
         updatedFilm.setId(filmId);
@@ -179,7 +179,7 @@ public class FilmControllerTest {
                 .andReturn().getResponse().getContentAsString();
 
         Film createdFilm = objectMapper.readValue(response, Film.class);
-        Integer filmId = createdFilm.getId();
+        Long filmId = createdFilm.getId();
 
         Film updatedFilm = createFilm("name", "desc", LocalDate.of(1895, 12, 27), 200);
         updatedFilm.setId(filmId);
@@ -244,12 +244,18 @@ public class FilmControllerTest {
     }
 
     private Film createFilm(String name, String description, LocalDate releaseDate, int duration) {
-        return Film.builder()
-                .name(name)
-                .description(description)
-                .releaseDate(releaseDate)
-                .duration(duration)
-                .build();
+        Film film = new Film();
+        film.setName(name);
+        film.setDescription(description);
+        film.setReleaseDate(releaseDate);
+        film.setDuration(duration);
+        return film;
+//        return Film.builder()
+//                .name(name)
+//                .description(description)
+//                .releaseDate(releaseDate)
+//                .duration(duration)
+//                .build();
     }
 
     private ResultActions mockMvcPerformPost(Film film) throws Exception {
@@ -258,7 +264,7 @@ public class FilmControllerTest {
                 .content(objectMapper.writeValueAsString(film)));
     }
 
-    private ResultActions mockMvcPerformPut(Film updatedFilm, int filmId) throws Exception {
+    private ResultActions mockMvcPerformPut(Film updatedFilm, long filmId) throws Exception {
         return mockMvc.perform(put("/films/" + filmId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updatedFilm)));

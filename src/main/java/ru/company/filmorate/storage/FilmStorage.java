@@ -3,16 +3,23 @@ package ru.company.filmorate.storage;
 import ru.company.filmorate.model.Film;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FilmStorage {
 
-    Film addFilm(Film film);
+    Optional<Film> addFilm(Film film);
 
-    Film updateFilm(Film film, Integer id);
+    Optional<Film> updateFilm(Film film, Long id);
 
     List<Film> getAllFilms();
 
     void deleteAllFilms();
 
-    boolean compareIdsForUpdate(Integer existingFilmId, Integer pathId);
+    void likeFilm(Long id, Long userId);
+
+    boolean filmExistsById(Long id);
+
+    void deleteLike(Long id, Long userId);
+
+    List<Film> getPopularFilms(Integer count);
 }
