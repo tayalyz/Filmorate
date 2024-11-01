@@ -7,7 +7,6 @@ import ru.company.filmorate.model.User;
 import ru.company.filmorate.service.UserService;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -17,13 +16,13 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping()
-    public Optional<User> addUser(@RequestBody @Valid User user) {
+    public User addUser(@RequestBody @Valid User user) {
         return userService.addUser(user);
     }
 
-    @PutMapping("/{id}")
-    public Optional<User> updateUser(@RequestBody @Valid User updatedUser, @PathVariable Long id) {
-        return userService.updateUser(updatedUser, id);
+    @PutMapping()
+    public User updateUser(@RequestBody @Valid User updatedUser) {
+        return userService.updateUser(updatedUser);
     }
 
     @GetMapping
