@@ -1,57 +1,52 @@
 package ru.company.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.company.filmorate.exception.NotFoundException;
 import ru.company.filmorate.model.Film;
-import ru.company.filmorate.util.Identifier;
+import ru.company.filmorate.service.FilmService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import static ru.company.filmorate.FilmorateApplication.log;
+import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/films")
 public class FilmController {
 
-    private final Map<Integer, Film> films;
-
-    public FilmController() {
-        this.films = new HashMap<>();
-    }
+    private final FilmService filmService;
 
     @PostMapping()
     public Film addFilm(@RequestBody @Valid Film film) {
-        film.setId(Identifier.INSTANCE.generate(Film.class));
-        films.put(film.getId(), film);
-        log.info("добавлен фильм с id {}", film.getId());
-        return film;
+        return filmService.addFilm(film);
     }
 
-    @PutMapping("/{id}")
-    public Film updateFilms(@RequestBody @Valid Film updatedFilm, @PathVariable Integer id) {
-        if (films.containsKey(id) && updatedFilm.getId().equals(id)) {
-            films.remove(id);
-        } else {
-            throw new NotFoundException("фильм не найден");
-        }
-
-        films.put(updatedFilm.getId(), updatedFilm);
-        log.info("обновлен фильм с id {}", updatedFilm.getId());
-        return updatedFilm;
+    @PutMapping()
+    public Film updateFilms(@RequestBody @Valid Film updatedFilm) {
+        return filmService.updateFilm(updatedFilm);
     }
 
     @GetMapping
-    public ArrayList<Film> getFilms() {
-        return new ArrayList<>(films.values());
+    public List<Film> getFilms() {
+        return filmService.getAllFilms();
     }
 
     @DeleteMapping
     public void deleteAllFilms() {
-        films.clear();
-        Identifier.INSTANCE.clear(Film.class);
-        log.info("все фильмы удалены");
+        filmService.deleteAllFilms();
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void likeFilm(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.likeFilm(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.deleteLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilms(@RequestParam(required = false, value = "count", defaultValue = "10") Integer count) {
+        return filmService.getPopularFilms(count);
     }
 }
