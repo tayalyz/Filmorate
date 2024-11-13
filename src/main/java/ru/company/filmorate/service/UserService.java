@@ -17,6 +17,11 @@ public class UserService {
 
     private final UserStorage<User> userStorage;
 
+    private User getUserById(Long id) {
+        return userStorage.findById(id)
+                .orElseThrow(() -> new NotFoundException("пользователь с id " + id + " не найден"));
+    }
+
     public User addUser(User user) {
         if (!userExistsByEmailAndLogin(user)) {
             userStorage.add(user);
@@ -44,43 +49,37 @@ public class UserService {
         log.info("все пользователи удалены");
     }
 
-    public void addFriend(Long id, Long friendId) {
-        if (!invalidFriendsIds(id, friendId)) {
-            if (userContainsFriend(id, friendId)) {
-                log.info("пользователь с id {} уже есть у вас в друзьях", friendId);
-                throw new DuplicateUserException("такой пользователь уже есть у вас в друзьях");
-            }
+    public User addFriend(Long id, Long friendId) {
 
-            userStorage.addFriend(id, friendId);
-            log.info("пользователь с id {} добавил в друзья пользователя с id {}", id, friendId);
-        }
+        validateFriendsIds(id, friendId);
+
+        User user = userStorage.addFriend(id, friendId);
+        log.info("пользователь с id {} добавил в друзья пользователя с id {}", id, friendId);
+        return user;
+
     }
 
-    public List<Long> getFriends(Long id) {
-        if (userStorage.findById(id).isEmpty()) {
-            log.info("пользователь с id {} не найден", id);
-            throw new NotFoundException("пользователь не найден");
-        }
-        return userStorage.getFriends(id);
+    public List<User> getFriends(Long id) {
+        return userStorage.getFriends(getUserById(id).getId());
     }
 
     public void deleteFriend(Long id, Long friendId) {
-        if (!invalidFriendsIds(id, friendId) && userContainsFriend(id, friendId)) {
+        validateFriendsIds(id, friendId);
+        if (userContainsFriend(id, friendId)) {
             userStorage.deleteFriend(id, friendId);
             log.info("пользователь с id {} удалил из друзей пользователя с id {}", id, friendId);
         }
     }
 
-    public List<Long> getMutualFriends(Long id, Long otherId) {
-        if (invalidFriendsIds(id, otherId)) {
-            return new ArrayList<>();
-        }
-        List<Long> friends = userStorage.getFriends(id);
+    public List<User> getMutualFriends(Long id, Long otherId) {
+        validateFriendsIds(id, otherId);
+
+        List<User> friends = userStorage.getFriends(id);
         friends.retainAll(userStorage.getFriends(otherId));
         return new ArrayList<>(friends);
     }
 
-    private boolean invalidFriendsIds(Long id, Long friendId) {
+    private void validateFriendsIds(Long id, Long friendId) {
         if (Objects.equals(id, friendId)) {
             throw new DuplicateUserException("нельзя добавить себя к себе в друзья");
         }
@@ -90,13 +89,14 @@ public class UserService {
         if (userStorage.findById(friendId).isEmpty()) {
             throw new NotFoundException("друг не найден");
         }
-        return false;
     }
 
     private boolean userContainsFriend(Long id, Long friendId) {
-        return userStorage.findById(id).isPresent() && userStorage.findById(id)
+        return userStorage.findById(id)
                 .orElseThrow(() -> new NotFoundException("пользователь не найден"))
-                .getFriends().contains(friendId);
+                .getFriends().contains(friendId) && userStorage.findById(friendId)
+                .orElseThrow(() -> new NotFoundException("пользователь не найден"))
+                .getFriends().contains(id);
     }
 
     private boolean userExistsByEmailAndLogin(User user) {

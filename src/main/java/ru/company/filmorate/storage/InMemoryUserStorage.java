@@ -2,7 +2,6 @@ package ru.company.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.company.filmorate.exception.NotFoundException;
 import ru.company.filmorate.model.User;
 import ru.company.filmorate.util.Identifier;
 
@@ -41,23 +40,32 @@ public class InMemoryUserStorage<T extends User> implements UserStorage<T> {
 
     @Override
     public Optional<T> findById(Long id) {
-        return Optional.ofNullable(users.get(id)); // TODO тут бросать исключение?
+        return Optional.ofNullable(users.get(id));
     }
 
     @Override
-    public void addFriend(Long id, Long friendId) {
-        findById(id).orElseThrow(()->new NotFoundException((""))).getFriends().add(friendId); // TODO нужно?
-        users.get(friendId).getFriends().add(id);
+    public User addFriend(Long id, Long friendId) {
+        User sourceUser = users.get(id);
+        User targetUser = users.get(friendId);
+
+        sourceUser.getFriends().add(friendId);
+        targetUser.getFriends().add(id);
+        return targetUser;
     }
 
     @Override
-    public List<Long> getFriends(Long id) {
-        return new ArrayList<>(users.get(id).getFriends());
+    public List<User> getFriends(Long id) {
+        List<User> friends = new ArrayList<>();
+        users.get(id).getFriends().forEach(friendId -> friends.add(users.get(friendId)));
+        return friends;
     }
 
     @Override
     public void deleteFriend(Long id, Long friendId) {
-        users.get(id).getFriends().remove(friendId);
-        users.get(friendId).getFriends().remove(id);
+        User user = users.get(id);
+        User friend = users.get(friendId);
+
+        user.getFriends().remove(friendId);
+        friend.getFriends().remove(id);
     }
 }
