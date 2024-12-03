@@ -1,4 +1,4 @@
-package ru.company.filmorate.controllerTest;
+package ru.company.filmorate.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -8,7 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import ru.company.filmorate.controller.FilmController;
+import ru.company.filmorate.controller.film.FilmControllerImpl;
 import ru.company.filmorate.model.Film;
 
 import java.time.LocalDate;
@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(FilmController.class)
+@WebMvcTest(FilmControllerImpl.class)
 public class FilmControllerTest {
 
     @Autowired
@@ -244,18 +244,18 @@ public class FilmControllerTest {
     }
 
     private Film createFilm(String name, String description, LocalDate releaseDate, int duration) {
-        Film film = new Film();
-        film.setName(name);
-        film.setDescription(description);
-        film.setReleaseDate(releaseDate);
-        film.setDuration(duration);
-        return film;
-//        return Film.builder()
-//                .name(name)
-//                .description(description)
-//                .releaseDate(releaseDate)
-//                .duration(duration)
-//                .build();
+//        Film film = new Film();
+//        film.setName(name);
+//        film.setDescription(description);
+//        film.setReleaseDate(releaseDate);
+//        film.setDuration(duration);
+//        return film;
+        return Film.builder()
+                .name(name)
+                .description(description)
+                .releaseDate(releaseDate)
+                .duration(duration)
+                .build();
     }
 
     private ResultActions mockMvcPerformPost(Film film) throws Exception {

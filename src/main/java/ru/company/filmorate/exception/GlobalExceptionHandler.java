@@ -51,4 +51,14 @@ public class GlobalExceptionHandler {
         errors.put("status", ex.getStatusCode());
         return errors;
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, Object> handleBadRequestExceptions(BadRequestException ex) {
+        Map<String, Object> errors = new HashMap<>();
+
+        errors.put("message", ex.getMessage());
+        errors.put("status", ex.getStatusCode());
+        return errors;
+    }
 }

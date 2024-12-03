@@ -1,21 +1,24 @@
 package ru.company.filmorate.model;
 
 import jakarta.validation.constraints.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import ru.company.filmorate.annotation.ReleaseDateValidation;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Setter
 @Getter
+@Builder
+@EqualsAndHashCode
 public class Film {
 
     private Long id;
 
-    @Size(max = 30, message = "Название фильма должно быть короче 50 символов")
+    @Size(max = 50, message = "Название фильма должно быть короче 50 символов")
     @NotBlank(message = "Название фильма не может быть пустым")
     private String name;
 
@@ -28,5 +31,12 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительной")
     private Integer duration;
 
+    @Builder.Default
     private Set<Long> likes = new HashSet<>();
+
+    @Builder.Default
+    private LinkedHashSet<Genre> genres = new LinkedHashSet<>();
+
+    @NotNull
+    private MpaRating mpa;
 }
