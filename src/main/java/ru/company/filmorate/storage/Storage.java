@@ -10,7 +10,7 @@ public interface Storage<T> {
     T update(T object);
 
     List<T> getAll();
-
+    // TODO лишний метод
     void deleteAll();
 
     Optional<T> findById(Long id);

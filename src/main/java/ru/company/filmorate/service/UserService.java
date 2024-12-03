@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.company.filmorate.exception.DuplicateUserException;
 import ru.company.filmorate.exception.NotFoundException;
 import ru.company.filmorate.model.User;
-import ru.company.filmorate.storage.UserStorage;
+import ru.company.filmorate.storage.userStorage.UserStorage;
 
 import java.util.*;
 
@@ -15,15 +15,19 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserStorage<User> userStorage;
+    private final UserStorage userStorage;
 
-    private User getUserById(Long id) {
+    public User getUserById(Long id) {
         return userStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("пользователь с id " + id + " не найден"));
+                .orElseThrow(() -> {
+                    log.info("пользователь с id " + id + " не найден");
+                    return new NotFoundException("пользователь с id " + id + " не найден");
+                });
     }
 
     public User addUser(User user) {
         if (!userExistsByEmailAndLogin(user)) {
+            validateUser(user);
             userStorage.add(user);
             log.info("добавлен пользователь с id {}", user.getId());
         }
@@ -31,10 +35,7 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        if (userStorage.findById(user.getId()).isEmpty()) {
-            log.info("пользователь с id {} не найден", user.getId());
-            throw new NotFoundException("пользователь не найден");
-        }
+        getUserById(user.getId());
         userStorage.update(user);
         log.info("обновлен пользователь с id {}", user.getId());
         return user;
@@ -49,33 +50,36 @@ public class UserService {
         log.info("все пользователи удалены");
     }
 
+    // TODO проверка возвращает пользователя, добавление - булен, метод вренет пользовтаеля
     public User addFriend(Long id, Long friendId) {
-
         validateFriendsIds(id, friendId);
-
+        if (userContainsFriend(id, friendId)) {
+            throw new DuplicateUserException("такой пользователь уже есть у вас в друзьях");
+        }
         User user = userStorage.addFriend(id, friendId);
         log.info("пользователь с id {} добавил в друзья пользователя с id {}", id, friendId);
         return user;
-
     }
 
     public List<User> getFriends(Long id) {
-        return userStorage.getFriends(getUserById(id).getId());
+        getUserById(id);
+        return userStorage.getFriends(id);
     }
 
     public void deleteFriend(Long id, Long friendId) {
         validateFriendsIds(id, friendId);
-        if (userContainsFriend(id, friendId)) {
-            userStorage.deleteFriend(id, friendId);
-            log.info("пользователь с id {} удалил из друзей пользователя с id {}", id, friendId);
-        }
+
+        userStorage.deleteFriend(id, friendId);
+        log.info("пользователь с id {} удалил из друзей пользователя с id {}", id, friendId);
     }
 
     public List<User> getMutualFriends(Long id, Long otherId) {
         validateFriendsIds(id, otherId);
 
         List<User> friends = userStorage.getFriends(id);
-        friends.retainAll(userStorage.getFriends(otherId));
+        List<User> otherFriends = userStorage.getFriends(otherId);
+
+        friends.retainAll(otherFriends);
         return new ArrayList<>(friends);
     }
 
@@ -94,26 +98,43 @@ public class UserService {
     private boolean userContainsFriend(Long id, Long friendId) {
         return userStorage.findById(id)
                 .orElseThrow(() -> new NotFoundException("пользователь не найден"))
-                .getFriends().contains(friendId) && userStorage.findById(friendId)
-                .orElseThrow(() -> new NotFoundException("пользователь не найден"))
-                .getFriends().contains(id);
+                .getFriends().contains(friendId);
     }
 
     private boolean userExistsByEmailAndLogin(User user) {
+        Set<String> emails = new HashSet<>();
+        Set<String> logins = new HashSet<>();
+
         for (User existingUser : userStorage.getAll()) {
-            if (existingUser.getEmail().equals(user.getEmail()) && existingUser.getLogin().equals(user.getLogin())) {
-                log.info("пользователь с электронной почтой {} и логином {} уже существует", user.getEmail(), user.getLogin());
-                throw new DuplicateUserException("такой пользователь уже существует");
-            }
-            if (existingUser.getEmail().equals(user.getEmail())) {
-                log.info("пользователь с электронной почтой {} уже существует", user.getEmail());
-                throw new DuplicateUserException("пользователь с такой электронной почтой уже существует");
-            }
-            if (existingUser.getLogin().equals(user.getLogin())) {
-                log.info("пользователь с логином {} уже существует", user.getLogin());
-                throw new DuplicateUserException("пользователь с таким логином уже существует");
-            }
+            emails.add(existingUser.getEmail());
+            logins.add(existingUser.getLogin());
+        }
+
+        boolean emailExists = emails.contains(user.getEmail());
+        boolean loginExists = logins.contains(user.getLogin());
+
+        if (emailExists || loginExists) {
+            String message = buildDuplicateUserMessage(emailExists, loginExists);
+            log.info("пользователь с электронной почтой {} или логином {} уже существует", user.getEmail(), user.getLogin());
+            throw new DuplicateUserException(message);
         }
         return false;
+    }
+
+    private String buildDuplicateUserMessage(boolean emailExists, boolean loginExists) {
+        if (emailExists && loginExists) {
+            return "пользователь с такими логином и электронной почтой уже существует";
+        } else if (emailExists) {
+            return "пользователь с такой электронной почтой уже существует";
+        } else {
+            return "пользователь с таким логином уже существует";
+        }
+    }
+
+    private void validateUser(User user) {
+        Set<Long> friends = user.getFriends();
+        if (friends != null && !friends.isEmpty()) {
+            friends.forEach(userStorage::findById);
+        }
     }
 }

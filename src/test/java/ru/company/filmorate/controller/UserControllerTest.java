@@ -8,7 +8,7 @@
 //import org.springframework.http.MediaType;
 //import org.springframework.test.web.servlet.MockMvc;
 //import org.springframework.test.web.servlet.ResultActions;
-//import ru.company.filmorate.controller.UserController;
+//import ru.company.filmorate.controller.user.UserController;
 //import ru.company.filmorate.model.User;
 //
 //import java.time.LocalDate;

@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,6 +15,8 @@ import java.util.Set;
 
 @Setter
 @Getter
+@Builder
+@EqualsAndHashCode
 public class User {
 
     private Long id;
@@ -31,5 +35,6 @@ public class User {
     @Past(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
 
+    @Builder.Default
     private Set<Long> friends = new HashSet<>();
 }
