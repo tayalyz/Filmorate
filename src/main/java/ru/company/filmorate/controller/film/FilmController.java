@@ -11,9 +11,6 @@ import java.util.List;
 @RequestMapping("/films")
 public interface FilmController extends Controllers<Film> {
 
-    @DeleteMapping
-    void deleteAllFilms();
-
     @PutMapping("/{id}/like/{userId}")
     void likeFilm(@PathVariable Long id, @PathVariable Long userId);
 

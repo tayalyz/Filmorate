@@ -15,7 +15,6 @@ public @interface ReleaseDateValidation {
 
     String message() default "ru.company.filmorate.annotation.ReleaseDateValidation";
 
-    //TODO посмотри
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};

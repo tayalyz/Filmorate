@@ -5,7 +5,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.company.filmorate.mapper.UserMapper;
 import ru.company.filmorate.mapper.UserRowMapper;
 import ru.company.filmorate.model.User;
 
@@ -20,11 +19,9 @@ public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public User addFriend(Long userId, Long friendId) {
+    public Boolean addFriend(Long userId, Long friendId) {
         String sql = "INSERT INTO USER_FRIENDS (user_id, friend_id) VALUES (?, ?)";
-        jdbcTemplate.update(sql, userId, friendId);
-
-        return findById(userId).orElse(null); // todo тут дублировать findById?
+        return jdbcTemplate.update(sql, userId, friendId) == 1;
     }
 
     @Override
@@ -90,27 +87,19 @@ public class UserDbStorage implements UserStorage {
                     u.email,
                     u.login,
                     u.name,
-                    u.birthday,
-                    GROUP_CONCAT(f.id) AS friends
+                    u.birthday
                 FROM
                     users u
-                LEFT JOIN
-                    user_friends uf ON u.id = uf.user_id
-                LEFT JOIN
-                    users f ON uf.friend_id = f.id
                 GROUP BY
-                    u.id, u.email, u.login, u.name, u.birthday;
+                    u.id, u.email, u.login, u.name, u.birthday
                 """;
+        String friendsSql = "SELECT friend_id FROM user_friends WHERE user_id = ?";
 
-        Map<Long, User> users = jdbcTemplate.query(sql, new UserMapper());
-        return users != null ? new ArrayList<>(users.values()) : new ArrayList<>();
-    }
-
-    @Override
-    public void deleteAll() {
-        String sql = "DELETE FROM USER_FRIENDS;" +  // todo нужно удалять друзей?
-                "DELETE FROM USERS";
-        jdbcTemplate.update(sql);
+        List<User> users = jdbcTemplate.query(sql, new UserRowMapper());
+        if (!users.isEmpty()) {
+            users.forEach(u -> u.setFriends(new HashSet<>(jdbcTemplate.queryForList(friendsSql, Long.class, u.getId()))));
+        }
+        return users;
     }
 
     @Override
@@ -121,21 +110,22 @@ public class UserDbStorage implements UserStorage {
                     u.email,
                     u.login,
                     u.name,
-                    u.birthday,
-                    GROUP_CONCAT(f.id) AS friends
+                    u.birthday
                 FROM
                     users u
-                LEFT JOIN
-                    user_friends uf ON u.id = uf.user_id
-                LEFT JOIN
-                    users f ON uf.friend_id = f.id
                 WHERE
                     u.id = ?
                 GROUP BY
                     u.id, u.email, u.login, u.name, u.birthday;
                 """;
+        String friendsSql = "SELECT friend_id FROM user_friends WHERE user_id = ?";
 
-        Map<Long, User> users = jdbcTemplate.query(sql, new UserMapper(), id);
-        return users != null ? Optional.ofNullable(users.get(id)) : Optional.empty();
+        Optional<User> user = jdbcTemplate.query(sql, new UserRowMapper(), id).stream().findFirst();
+
+        user.ifPresent(u -> {
+            List<Long> friendIds = jdbcTemplate.queryForList(friendsSql, Long.class, id);
+            u.setFriends(new HashSet<>(friendIds));
+        });
+        return user;
     }
 }

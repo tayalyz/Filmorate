@@ -50,8 +50,8 @@ public class FilmDbStorage implements FilmStorage {
         Long filmId = (Long) keyHolder.getKey();
         film.setId(filmId);
 
-        setLikesAndGenres(film);
-        return film; // todo можно ли добавить данные о лайках?
+        setLikesAndGenres(film, true);
+        return film;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(setFilm, film.getName(), film.getDescription(),
                 film.getReleaseDate(), film.getDuration(), filmId);
 
-        setLikesAndGenres(film);
+        setLikesAndGenres(film, false);
         return film;
     }
 
@@ -74,34 +74,32 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> getAll() {
         String sql = """
                 SELECT
-                     f.id,
-                     f.name,
-                     f.description,
-                     f.release_date,
-                     f.duration,
-                     r.name AS mpa_name,
-                     r.id AS mpa_id,
-                     (SELECT GROUP_CONCAT(fl.user_id ORDER BY fl.user_id SEPARATOR ',') FROM film_likes fl WHERE fl.film_id = f.id) AS likes,
-                     (SELECT GROUP_CONCAT(g.id || ':' || g.name ORDER BY g.name SEPARATOR ',') FROM film_genres fg JOIN genres g ON fg.genre_id = g.id WHERE fg.film_id = f.id) AS genres_combined
-                 FROM
-                     films f
-                 LEFT JOIN
-                     mpa_rating r ON f.mpa_id = r.id;
+                    f.id,
+                    f.name,
+                    f.description,
+                    f.release_date,
+                    f.duration,
+                    r.name AS mpa_name,
+                    r.id AS mpa_id,
+                    fg.genre_id,
+                    g.name AS genre_name,
+                    fl.user_id AS like_id
+                FROM
+                    films f
+                LEFT JOIN
+                    film_likes fl on f.id = fl.film_id
+                LEFT JOIN
+                    film_genres fg on f.id = fg.film_id
+                LEFT JOIN
+                    genres g on fg.genre_id = g.id
+                LEFT JOIN
+                    mpa_rating r ON f.mpa_id = r.id;
                 """;
 
         Map<Long, Film> films = jdbcTemplate.query(sql, new FilmMapper());
         return films != null ? new ArrayList<>(films.values()) : new ArrayList<>();
     }
 
-    @Override
-    public void deleteAll() {
-        String sql = "DELETE FROM FILM_LIKES; " +
-                "DELETE FROM FILM_GENRES; " +
-                "DELETE FROM FILMS";
-        jdbcTemplate.update(sql);
-    }
-
-    // TODO переписать под genre_id и genre_name
     @Override
     public Optional<Film> findById(Long id) {
         String sql = """
@@ -113,17 +111,22 @@ public class FilmDbStorage implements FilmStorage {
                     f.duration,
                     r.name AS mpa_name,
                     r.id AS mpa_id,
-                    (SELECT GROUP_CONCAT(fl.user_id ORDER BY fl.user_id SEPARATOR ',') FROM film_likes fl WHERE fl.film_id = f.id) AS likes,
-                    (SELECT GROUP_CONCAT(g.id || ':' || g.name ORDER BY g.id SEPARATOR ',') FROM film_genres fg JOIN genres g ON fg.genre_id = g.id WHERE fg.film_id = f.id) AS genres_combined
+                    fg.genre_id,
+                    g.name AS genre_name,
+                    fl.user_id AS like_id
                 FROM
                     films f
+                LEFT JOIN
+                    film_likes fl on f.id = fl.film_id
+                LEFT JOIN
+                    film_genres fg on f.id = fg.film_id
+                LEFT JOIN
+                    genres g on fg.genre_id = g.id
                 LEFT JOIN
                     mpa_rating r ON f.mpa_id = r.id
                 WHERE
                     f.id = ?;
                 """;
-
-
 
         Map<Long, Film> films = jdbcTemplate.query(sql, new FilmMapper(), id);
         return films != null ? Optional.ofNullable(films.get(id)) : Optional.empty();
@@ -135,7 +138,7 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sql, new GenreMapper(), id);
     }
 
-    private void setLikesAndGenres(Film film) {
+    private void setLikesAndGenres(Film film, boolean nonAddable) {
         String setGenres = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
         String setLikes = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
 
@@ -147,12 +150,14 @@ public class FilmDbStorage implements FilmStorage {
             });
         }
 
-        Set<Long> likes = film.getLikes();
-        if (likes != null && !likes.isEmpty()) {
-            jdbcTemplate.batchUpdate(setLikes, likes, likes.size(), (ps, userId) -> {
-                ps.setLong(1, film.getId());
-                ps.setLong(2, userId);
-            });
+        if (!nonAddable) {
+            Set<Long> likes = film.getLikes();
+            if (likes != null && !likes.isEmpty()) {
+                jdbcTemplate.batchUpdate(setLikes, likes, likes.size(), (ps, userId) -> {
+                    ps.setLong(1, film.getId());
+                    ps.setLong(2, userId);
+                });
+            }
         }
     }
 }

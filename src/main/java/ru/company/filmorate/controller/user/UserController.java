@@ -9,9 +9,6 @@ import java.util.List;
 @RequestMapping("/users")
 public interface UserController extends Controllers<User> {
 
-    @DeleteMapping
-    void deleteAllUsers();
-
     @PutMapping("/{id}/friends/{friendId}")
     User addFriend(@PathVariable Long id, @PathVariable Long friendId);
 

@@ -32,13 +32,6 @@ public class UserDbStorageTest {
     }
 
     @Test
-    public void deleteAllUsers() {
-        userStorage.deleteAll();
-        List<User> users = userStorage.getAll();
-        assertThat(users).isEmpty();
-    }
-
-    @Test
     public void testFindUserById_NotFound() {
         Optional<User> userOptional = userStorage.findById(99L);
         assertThat(userOptional).isNotPresent();
@@ -83,8 +76,9 @@ public class UserDbStorageTest {
 
     @Test
     public void testAddFriend() {
-        User user = userStorage.addFriend(2L,1L);
-        assertThat(user.getFriends()).containsExactly(1L);
+        userStorage.addFriend(2L,1L);
+        Optional<User> user = userStorage.findById(2L);
+        assertThat(user.get().getFriends()).containsExactly(1L);
     }
 
     @Test

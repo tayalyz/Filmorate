@@ -45,20 +45,15 @@ public class UserService {
         return userStorage.getAll();
     }
 
-    public void deleteAllUsers() {
-        userStorage.deleteAll();
-        log.info("все пользователи удалены");
-    }
-
-    // TODO проверка возвращает пользователя, добавление - булен, метод вренет пользовтаеля
     public User addFriend(Long id, Long friendId) {
-        validateFriendsIds(id, friendId);
         if (userContainsFriend(id, friendId)) {
             throw new DuplicateUserException("такой пользователь уже есть у вас в друзьях");
         }
-        User user = userStorage.addFriend(id, friendId);
-        log.info("пользователь с id {} добавил в друзья пользователя с id {}", id, friendId);
-        return user;
+        validateFriendsIds(id, friendId);
+        if (userStorage.addFriend(id, friendId)) {
+            log.info("пользователь с id {} добавил в друзья пользователя с id {}", id, friendId);
+        }
+        return getUserById(id);
     }
 
     public List<User> getFriends(Long id) {
@@ -84,11 +79,11 @@ public class UserService {
     }
 
     private void validateFriendsIds(Long id, Long friendId) {
-        if (Objects.equals(id, friendId)) {
-            throw new DuplicateUserException("нельзя добавить себя к себе в друзья");
-        }
         if (userStorage.findById(id).isEmpty()) {
             throw new NotFoundException("пользователь не найден");
+        }
+        if (Objects.equals(id, friendId)) {
+            throw new DuplicateUserException("нельзя добавить себя к себе в друзья");
         }
         if (userStorage.findById(friendId).isEmpty()) {
             throw new NotFoundException("друг не найден");

@@ -5,6 +5,7 @@ import ru.company.filmorate.model.User;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashSet;
 
 public class UserRowMapper implements RowMapper<User> {
 
@@ -16,6 +17,7 @@ public class UserRowMapper implements RowMapper<User> {
                 .login(rs.getString("login"))
                 .email(rs.getString("email"))
                 .birthday(rs.getDate("birthday").toLocalDate())
+                .friends(new HashSet<>())
                 .build();
     }
 }

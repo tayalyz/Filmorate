@@ -61,11 +61,6 @@ public class FilmService {
         return filmStorage.getAll();
     }
 
-    public void deleteAllFilms() {
-        filmStorage.deleteAll();
-        log.info("все фильмы удалены");
-    }
-
     public void likeFilm(Long id, Long userId) {
         if (userStorage.findById(userId).isEmpty()) {
             log.info("пользователь с id {} не найден", userId);

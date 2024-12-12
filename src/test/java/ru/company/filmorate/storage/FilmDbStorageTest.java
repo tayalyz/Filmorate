@@ -32,13 +32,6 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    public void deleteAllFilms() {
-        filmStorage.deleteAll();
-        List<Film> films = filmStorage.getAll();
-        assertThat(films).isEmpty();
-    }
-
-    @Test
     public void testFindFilmById_NotFound() {
         Optional<Film> filmOptional = filmStorage.findById(99L);
         assertThat(filmOptional).isNotPresent();

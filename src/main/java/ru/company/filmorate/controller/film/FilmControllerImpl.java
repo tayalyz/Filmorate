@@ -20,11 +20,6 @@ public class FilmControllerImpl implements FilmController {
     }
 
     @Override
-    public void deleteAllFilms() {
-        filmService.deleteAllFilms();
-    }
-
-    @Override
     public void likeFilm(Long id, Long userId) {
         filmService.likeFilm(id, userId);
     }

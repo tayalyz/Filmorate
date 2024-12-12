@@ -19,11 +19,6 @@ public class UserControllerImpl implements UserController{
     }
 
     @Override
-    public void deleteAllUsers() {
-        userService.deleteAllUsers();
-    }
-
-    @Override
     public User addFriend(Long id, Long friendId) {
         return userService.addFriend(id, friendId);
     }
